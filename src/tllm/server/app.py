@@ -1,11 +1,10 @@
 # src/tllm/server/app.py
 import uuid
+from contextlib import asynccontextmanager
 from fastapi import FastAPI, HTTPException
 from tllm.server.completion_types import CompletionResponse, CompletionRequest
 import asyncio
 import time
-
-app = FastAPI(title="tLLM Inference Server")
 
 # Global engine
 # engine: Engine | None = None
@@ -13,28 +12,30 @@ engine = None
 engine_task: asyncio.Task | None = None
 running = False
 
-@app.on_event("startup")
-async def startup():
+@asynccontextmanager
+async def lifespan(app: FastAPI):
     """Initialize engine and scheduler on startup"""
     
     global engine, engine_task, running
     
+    # Startup logic
     print(f"Initializing engine...")
     
     time.sleep(0.5)
     
     print(f"Engine initialized and running: {running}")
-
-@app.on_event("shutdown")
-async def shutdown():
-    """Clean shutdown engine and scheduler"""
-    global running
+    
+    yield
+    
+    # Shutdown logic
     running = False
     
     if engine_task:
         await engine_task
         
     print("Engine has been shut down")
+
+app = FastAPI(title="tLLM Inference Server", lifespan=lifespan)
 
 @app.get("/health")
 async def health():
