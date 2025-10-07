@@ -13,3 +13,9 @@ dependencies = [
 authors = [
     {name = "Rathul Anand", email = "rathul@g.ucla.edu"}
 ]
+
+[tool.uv]
+dev-dependencies = [
+    "pytest>=8.4.2",
+    "httpx>=0.28.1",
+]

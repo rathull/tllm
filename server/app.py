@@ -52,8 +52,8 @@ async def health():
 @app.post("/v1/completions", response_model=CompletionResponse)
 async def create_completion(request: CompletionRequest):
     """Main completion endpoint"""
-    if engine is None:
-        raise HTTPException(status_code=503, detail="Engine not initialized")
+    # if engine is None:
+    #     raise HTTPException(status_code=503, detail="Engine not initialized")
     
     request_id = str(uuid.uuid4())
     start_time = time.time()
@@ -65,7 +65,7 @@ async def create_completion(request: CompletionRequest):
     # Create request object 
     req = None
     # Add request to engine
-    engine.add(request(req))
+    # engine.add(request(req))
     
     # Wait for completion (simple polling)
     # while req.status != RequestStatus.FINISHED:
@@ -87,8 +87,8 @@ async def create_completion(request: CompletionRequest):
         id=request_id,
         text=output_text,
         num_prompt_tokens=len(prompt_token_ids),
-        num_completion_tokens=len(req.generated_tokens),
-        num_total_tokens=len(prompt_token_ids) + len(req.generated_tokens),
+        num_completion_tokens=30,#len(req.generated_tokens),
+        num_total_tokens=len(prompt_token_ids) + 30,#len(req.generated_tokens),
         latency_ms=latency_ms,
         ttft_ms=tftt_ms
     )
