@@ -1,9 +1,8 @@
-# server/app.py
+# src/tllm/server/app.py
 import uuid
 from fastapi import FastAPI, HTTPException
-from completion_types import CompletionResponse, CompletionRequest
+from tllm.server.completion_types import CompletionResponse, CompletionRequest
 import asyncio
-import uuid
 import time
 
 app = FastAPI(title="tLLM Inference Server")
@@ -14,8 +13,6 @@ engine = None
 engine_task: asyncio.Task | None = None
 running = False
 
-# TODO: transition from on_event handlers to using lifespan event handlers
-
 @app.on_event("startup")
 async def startup():
     """Initialize engine and scheduler on startup"""
@@ -24,7 +21,6 @@ async def startup():
     
     print(f"Initializing engine...")
     
-    import time
     time.sleep(0.5)
     
     print(f"Engine initialized and running: {running}")
@@ -101,6 +97,10 @@ async def get_stats():
     
     return engine.get_stats()
 
-if __name__ == "__main__":
+def main():
+    """Entry point for the CLI command"""
     import uvicorn
     uvicorn.run(app, host="0.0.0.0", port=8000, log_level="info")
+
+if __name__ == "__main__":
+    main()

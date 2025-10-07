@@ -1,3 +1,7 @@
+[build-system]
+requires = ["setuptools>=69", "wheel"]
+build-backend = "setuptools.build_meta"
+
 [project]
 name = "tllm"
 version = "0.1.0"
@@ -6,6 +10,7 @@ readme = "README.md"
 requires-python = ">=3.12"
 dependencies = [
     "fastapi>=0.118.0",
+    "modal>=1.1.4",
     "pydantic>=2.12.0",
     "requests>=2.32.5",
     "uvicorn[standard]>=0.37.0",
@@ -19,3 +24,12 @@ dev-dependencies = [
     "pytest>=8.4.2",
     "httpx>=0.28.1",
 ]
+
+[project.scripts]
+tllm = "tllm.server.app:main"
+
+[tool.setuptools]
+package-dir = {"" = "src"}
+
+[tool.setuptools.packages.find]
+where = ["src"]
