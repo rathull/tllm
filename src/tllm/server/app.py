@@ -2,13 +2,16 @@
 import uuid
 from contextlib import asynccontextmanager
 from fastapi import FastAPI, HTTPException
+from tllm.core.request import Request, RequestStatus
 from tllm.server.completion_types import CompletionResponse, CompletionRequest
 import asyncio
 import time
+from tllm.server.request_queue import RequestQueue
+from tllm.core.engine import Engine
 
 # Global engine
 # engine: Engine | None = None
-engine = None
+engine = Engine()
 engine_task: asyncio.Task | None = None
 running = False
 
@@ -19,7 +22,7 @@ async def lifespan(app: FastAPI):
     global engine, engine_task, running
     
     # Startup logic
-    print(f"Initializing engine...")
+    print("Initializing engine...")
     
     time.sleep(0.5)
     
@@ -47,28 +50,42 @@ async def health():
     }
 
 @app.post("/v1/completions", response_model=CompletionResponse)
-async def create_completion(request: CompletionRequest):
+async def create_completion(completion_request: CompletionRequest):
     """Main completion endpoint"""
+    global engine, engine_task, running
+    
     # if engine is None:
     #     raise HTTPException(status_code=503, detail="Engine not initialized")
     
     request_id = str(uuid.uuid4())
     start_time = time.time()
     
-    # Mock tokenizer (split on spaces)
-    prompt_tokens = request.prompt.split()
+    # Tokenize
+    # vLLM runs tokenization on the server side as soon as the request arrives
+    prompt_tokens = completion_request.prompt.split() # TODO(rathull): Use vLLM tokenizer
     prompt_token_ids = list(hash(token)%1000 for token in prompt_tokens)
     
     # Create request object 
-    req = None
+    request = Request(
+        request_id=request_id,
+        prompt_token_ids=prompt_token_ids,
+        max_tokens=completion_request.max_tokens,
+        temperature=completion_request.temperature,
+        top_p=completion_request.top_p,
+        arrival_time=start_time,
+    )
+    
     # Add request to engine
-    # engine.add(request(req))
+    await engine.add(request)
     
     # Wait for completion (simple polling)
-    # while req.status != RequestStatus.FINISHED:
-    #     await asyncio.sleep(0.1)
+    while request.status != RequestStatus.FINISHED and request.status != RequestStatus.FAILED:
+        await asyncio.sleep(0.1)
     
     end_time = time.time()
+    
+    if request.status == RequestStatus.FAILED:
+        raise HTTPException(status_code=500, detail="Request failed")
     
     # Mock decode (just use token IDs as text)
     output_text = f"these are the decoded tokens in the completion for {request_id}"

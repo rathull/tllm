@@ -9,10 +9,17 @@ description = "A tiny inference server"
 readme = "README.md"
 requires-python = ">=3.12"
 dependencies = [
+    "absl-py>=2.3.1",
     "fastapi>=0.118.0",
     "modal>=1.1.4",
+    "numpy>=2.3.3",
+    "pillow>=11.3.0",
     "pydantic>=2.12.0",
     "requests>=2.32.5",
+    "sentencepiece>=0.2.1",
+    "torch>=2.8.0",
+    "torchaudio>=2.8.0",
+    "torchvision>=0.23.0",
     "uvicorn[standard]>=0.37.0",
 ]
 authors = [
@@ -23,6 +30,22 @@ authors = [
 dev-dependencies = [
     "pytest>=8.4.2",
     "httpx>=0.28.1",
+]
+
+[[tool.uv.index]]
+name = "pytorch-cu126"
+url = "https://download.pytorch.org/whl/cu126"
+explicit = true
+
+[tool.uv.sources]
+torch = [
+  { index = "pytorch-cu126", marker = "sys_platform == 'linux' or sys_platform == 'win32'" },
+]
+torchvision = [
+  { index = "pytorch-cu126", marker = "sys_platform == 'linux' or sys_platform == 'win32'" },
+]
+torchaudio = [
+  { index = "pytorch-cu126", marker = "sys_platform == 'linux' or sys_platform == 'win32'" },
 ]
 
 [project.scripts]

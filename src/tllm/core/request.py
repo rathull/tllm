@@ -12,12 +12,16 @@ class RequestStatus(Enum):
 class Request:
     """A single inference request"""
     request_id: str
-    prompt: str
+    prompt_token_ids: list[int]
     max_tokens: int
     
     # Sampling params
     temperature: float
     top_p: float
+    
+    # Stop conditions
+    eos_id: int | None = None
+    stop_token_ids: list[int] | None = None
     
     # Status
     status: RequestStatus = RequestStatus.WAITING
