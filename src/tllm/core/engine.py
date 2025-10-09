@@ -17,9 +17,9 @@ class Engine:
     ) -> None:
         self.gpu_memory_utilization = gpu_memory_utilization
         # WAITING status, no KV cache allocated, no tokens computed
-        self.waiting_queue = asyncio.Queue()
+        self.waiting_queue: asyncio.Queue[Request] = asyncio.Queue()
         # Requests have KV cache allocated, either a chunked prefill or decode
-        self.running_queue = asyncio.Queue()
+        self.running_queue: asyncio.Queue[Request] = asyncio.Queue()
         # KV cache manager
         
         # If we have more than this number of decodes waiting, don't start prefills
@@ -35,12 +35,15 @@ class Engine:
     async def add(self, request: Request) -> None:
         await self.waiting_queue.put(request)
 
-    async def schedule(self):
-        prefill_batch = []
+    async def schedule(self) -> tuple[list[Request], Request | None]:
+        prefill_request = None
         decode_batch = []
         
         # Add all decode steps we can afford to, prioritizing FCFS running requests
-        for req in self.running_queue:
+        while self.running_queue:
+            candidate_req = self.running_queue[0]
+            if 
+        async for req in self.running_queue:
             # TODO(kv): if we can allocate space for this request, add it to the decode batch
             decode_batch.append(req)
         
@@ -48,22 +51,22 @@ class Engine:
         if (
             len(decode_batch) < self.decode_size_limit_for_prefill and 
             self.waiting_queue # and
-            # can allocate space for a prefill request on GPU
+            # TODO can allocate space for a prefill request on GPU
         ):
-            self.waiting_queue.append()
+            prefill_request = await self.waiting_queue.get()
         
         # Only one new prefill per step
         # Prevents prefill from monopolizing compute, keeps decode ITL predictable
+        return prefill_request, decode_batch
 
     async def step(self) -> None:
-        # Pull from queue and add requests to scheduler
-        # 
-        
         # Schedule: select which requests to run in this step (decode or prefill)
         # batch = scheduler.schedule(...)
+        prefill_request, decode_batch = self.schedule()
         
         # Forward pass: run model
         # tokens = mode_runner.forward(batch)
+        
         
         # Forward pass: sample tokens
         
