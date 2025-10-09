@@ -34,6 +34,13 @@ class Request:
     arrival_time: float = 0.0
     first_token_time: float | None = None
     finish_time: float | None = None
+    
+    def reached_stop_condition(self) -> bool:
+        return (
+            len(self.prompt_token_ids) + len(self.generated_tokens) >= self.max_tokens or
+            self.generated_tokens[-1] == self.eos_id or 
+            self.generated_tokens[-1] in self.stop_token_ids
+        )
 
 @dataclass
 class SchedulerOutput:

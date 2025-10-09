@@ -6,8 +6,8 @@ from tllm.core.request import Request, RequestStatus
 from tllm.server.completion_types import CompletionResponse, CompletionRequest
 import asyncio
 import time
-from tllm.server.request_queue import RequestQueue
 from tllm.core.engine import Engine
+from tllm.server.constants import REQUEST_COMPLETION_POLL_INTERVAL
 
 # Global engine
 # engine: Engine | None = None
@@ -80,14 +80,14 @@ async def create_completion(completion_request: CompletionRequest):
     
     # Wait for completion (simple polling)
     while request.status != RequestStatus.FINISHED and request.status != RequestStatus.FAILED:
-        await asyncio.sleep(0.1)
+        await asyncio.sleep(REQUEST_COMPLETION_POLL_INTERVAL)
     
     end_time = time.time()
     
     if request.status == RequestStatus.FAILED:
         raise HTTPException(status_code=500, detail="Request failed")
     
-    # Mock decode (just use token IDs as text)
+    # Mock detokenize (just use token IDs as text)
     output_text = f"these are the decoded tokens in the completion for {request_id}"
     
     # Calculate metrics
